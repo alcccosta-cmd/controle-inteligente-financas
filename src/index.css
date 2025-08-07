@@ -53,6 +53,16 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Brand and extras */
+    --brand: 266 85% 57%;
+    --brand-alt: 291 72% 49%;
+    --brand-foreground: 0 0% 98%;
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand)), hsl(var(--brand-alt)));
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--brand) / 0.25);
+    --shadow-elevated: 0 12px 30px hsl(var(--brand) / 0.22);
+    --shadow-glow: 0 0 40px hsl(var(--brand-alt) / 0.35);
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
@@ -91,6 +101,11 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Brand stays consistent in dark mode */
+    --brand: 266 85% 60%;
+    --brand-alt: 291 72% 54%;
+    --brand-foreground: 0 0% 100%;
   }
 }
 
