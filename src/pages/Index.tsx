@@ -10,6 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/components/ui/use-toast";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, Legend } from "recharts";
 import * as XLSX from "xlsx";
+import FloatingActionButton from "@/components/FloatingActionButton";
+import QuickAddModal from "@/components/QuickAddModal";
+import { createTransaction as createSupabaseTransaction } from "@/services/api/transactions";
 
 // Tipos básicos
 interface Categoria { id: string; nome: string; tipo: "Receita" | "Despesa"; centroDeCusto?: string; cor: string }
@@ -38,6 +41,36 @@ const Index: React.FC = () => {
   const [despesas, setDespesas] = React.useState<Despesa[]>([]);
   const [compras, setCompras] = React.useState<CompraItem[]>([]);
   const [planejamento, setPlanejamento] = React.useState<Planejamento[]>([]);
+
+  // Quick Add (FAB)
+  const [quickAddOpen, setQuickAddOpen] = React.useState(false);
+  const [quickAddType, setQuickAddType] = React.useState<'income'|'expense'|'purchase'>('expense');
+
+  async function handleQuickAddSubmit(payload: { type: 'income'|'expense'|'purchase'; date: string; description: string; amount: number; categoryId?: string; paymentMethod?: string; }) {
+    try {
+      // Otimismo local
+      if (payload.type === 'income') {
+        setReceitas(prev => [...prev, { id: crypto.randomUUID(), data: payload.date, fonte: payload.description, valor: payload.amount, categoriaId: payload.categoryId || '', obs: 'Quick Add' }]);
+      } else if (payload.type === 'expense') {
+        setDespesas(prev => [...prev, { id: crypto.randomUUID(), data: payload.date, descricao: payload.description, valor: payload.amount, categoriaId: payload.categoryId || '', forma: payload.paymentMethod || 'Cartão', parcelas: 1, vencimento: payload.date, pago: false, obs: 'Quick Add' }]);
+      }
+
+      // Persistência Supabase (best-effort)
+      await createSupabaseTransaction({
+        date: new Date(payload.date).toISOString(),
+        description: payload.description || (payload.type === 'income' ? 'Receita rápida' : 'Despesa rápida'),
+        amount: Number(payload.amount),
+        category_id: payload.categoryId,
+        payment_method: payload.paymentMethod,
+        is_paid: payload.type === 'expense' ? false : true,
+        source: 'manual',
+      });
+      toast({ title: 'Lançamento salvo', description: 'Sincronizado com Supabase.' });
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: 'Salvo localmente', description: 'Não foi possível sincronizar agora. Verifique a configuração do Supabase.' });
+    }
+  }
 
   const hoje = new Date();
   const anoAtual = hoje.getFullYear();
@@ -665,6 +698,14 @@ const Index: React.FC = () => {
           </TabsContent>
         </Tabs>
       </section>
+      <QuickAddModal
+        open={quickAddOpen}
+        type={quickAddType}
+        categories={(quickAddType === 'income' ? categorias.filter(c => c.tipo === 'Receita') : categorias.filter(c => c.tipo === 'Despesa')).map(c => ({ id: c.id, name: c.nome }))}
+        onClose={() => setQuickAddOpen(false)}
+        onSubmit={handleQuickAddSubmit}
+      />
+      <FloatingActionButton onAction={(t) => { setQuickAddType(t); setQuickAddOpen(true); }} />
     </main>
   );
 };
