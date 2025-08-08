@@ -12,8 +12,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import * as XLSX from "xlsx";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import QuickAddModal from "@/components/QuickAddModal";
-import { createTransaction as createSupabaseTransaction } from "@/services/api/transactions";
-
+import { createTransaction as createSupabaseTransaction, listTransactionsByMonth as listSupabaseTransactions, listCategories as listSupabaseCategories, createCategory as createSupabaseCategory } from "@/services/api/transactions";
 // Tipos básicos
 interface Categoria { id: string; nome: string; tipo: "Receita" | "Despesa"; centroDeCusto?: string; cor: string }
 interface Receita { id: string; data: string; fonte: string; valor: number; categoriaId: string; obs?: string }

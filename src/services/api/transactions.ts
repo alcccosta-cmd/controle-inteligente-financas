@@ -40,7 +40,29 @@ export async function listCategories(): Promise<Category[]> {
   if (!supabase) throw new Error("Supabase não configurado");
   const { data, error } = await supabase
     .from("categories")
-    .select("id, name, type, color, cost_center")
+    .select("id, name, type, color, cost_center");
   if (error) throw error;
   return (data || []) as Category[];
+}
+
+export async function createCategory(payload: {
+  name: string;
+  type: "income" | "expense";
+  color?: string | null;
+  cost_center?: string | null;
+}): Promise<Category> {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("Supabase não configurado");
+  const { data, error } = await supabase
+    .from("categories")
+    .insert({
+      name: payload.name,
+      type: payload.type,
+      color: payload.color ?? null,
+      cost_center: payload.cost_center ?? null,
+    })
+    .select("id, name, type, color, cost_center")
+    .single();
+  if (error) throw error;
+  return data as Category;
 }
